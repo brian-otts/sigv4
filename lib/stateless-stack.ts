@@ -25,6 +25,20 @@ export class StatelessStack extends cdk.Stack {
 
     props.fruitTable.grantReadData(role);
 
+    const intResponseList = `
+      #set($inputRoot = $input.path('$'))
+      [
+        #foreach($item in $inputRoot.Items)
+          {
+            "name": "$item.name.S",
+            "expiration": "$item.expiration.S",
+            "color": "$item.color.S",
+            "count": $item.count.N
+          }#if($foreach.hasNext),#end
+        #end
+      ]
+    `.replace(/\n\s+/g, "");
+
     const fruitsResource = api.root.addResource("fruits");
     fruitsResource.addMethod(
       "GET",
@@ -42,32 +56,45 @@ export class StatelessStack extends cdk.Stack {
             {
               statusCode: "200",
               responseTemplates: {
-                "application/json": `
-                  #set($inputRoot = $input.path('$'))
-                  {
-                    "items": [
-                      #foreach($elem in $inputRoot.Items) {
-                        #set($map = $elem.entrySet())
-                          {
-                            #foreach($entry in $map)
-                            #set($type = $entry.value.type)
-                            #if($type == "S")
-                            "$entry.key": "$entry.value.S"
-                            #elseif($type == "N")
-                            "$entry.key": $entry.value.N
-                            #elseif($type == "BOOL")
-                            "$entry.key": $entry.value.BOOL
-                            #else
-                            "$entry.key": "$entry.value.S"
-                            #end
-                            #if($foreach.hasNext),#end
-                            #end
-                          }
-                        #if($foreach.hasNext),#end
-                      #end
-                    ]
-                  }
-                `.replace(/\n\s+/g, ""),
+                "application/json": intResponseList,
+              },
+            },
+          ],
+        },
+      }),
+      {
+        methodResponses: [
+          {
+            statusCode: "200",
+          },
+        ],
+      }
+    );
+
+    const fruitResource = fruitsResource.addResource("{name}");
+    fruitResource.addMethod(
+      "GET",
+      new AwsIntegration({
+        service: "dynamodb",
+        action: "Query",
+        options: {
+          credentialsRole: role,
+          requestTemplates: {
+            "application/json": JSON.stringify({
+              TableName: props.fruitTable.tableName,
+              KeyConditionExpression: "name = :name",
+              ExpressionAttributeValues: {
+                ":name": {
+                  S: "$input.params('name')",
+                },
+              },
+            }),
+          },
+          integrationResponses: [
+            {
+              statusCode: "200",
+              responseTemplates: {
+                "application/json": intResponseList,
               },
             },
           ],
