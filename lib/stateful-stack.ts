@@ -16,10 +16,17 @@ export class StatefulStack extends cdk.Stack {
       removalPolicy: cdk.RemovalPolicy.DESTROY,
       lifecycleRules: [
         {
-          expiration: cdk.Duration.days(7),
+          expiration: cdk.Duration.days(1),
         },
       ],
       autoDeleteObjects: true,
+      blockPublicAccess: {
+        blockPublicAcls: true,
+        blockPublicPolicy: true,
+        ignorePublicAcls: true,
+        restrictPublicBuckets: true,
+      },
+      enforceSSL: true,
     });
 
     new BucketDeployment(this, "DeployDdbSeedCsv", {

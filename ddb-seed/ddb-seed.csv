@@ -1,5 +1,5 @@
-name, expiration, color, count
-apple, 25-09-2024, red, 5
-banana, 08-20-2024, yellow, 7
-passion fruit, 11-11-2024, yellow, 15
-grapes, 7-30-2024, purple, 100
+name,expiration,color,count
+apple,25-09-2024,red,5
+banana,08-20-2024,yellow,7
+passionfruit,11-11-2024,yellow,15
+grapes,7-30-2024,purple,100

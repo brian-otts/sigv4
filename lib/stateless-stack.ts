@@ -1,5 +1,9 @@
 import * as cdk from "aws-cdk-lib";
-import { AwsIntegration, RestApi } from "aws-cdk-lib/aws-apigateway";
+import {
+  AwsIntegration,
+  MethodLoggingLevel,
+  RestApi,
+} from "aws-cdk-lib/aws-apigateway";
 import { Table } from "aws-cdk-lib/aws-dynamodb";
 import { Role, ServicePrincipal } from "aws-cdk-lib/aws-iam";
 import { Construct } from "constructs";
@@ -16,6 +20,12 @@ export class StatelessStack extends cdk.Stack {
       restApiName: "fruits-rest-api",
       deployOptions: {
         stageName: "dev",
+        tracingEnabled: true,
+        methodOptions: {
+          ["/*/*"]: {
+            loggingLevel: MethodLoggingLevel.INFO,
+          },
+        },
       },
     });
 
